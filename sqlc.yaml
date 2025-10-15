@@ -12,7 +12,7 @@ sql:
       - plugin: "py"
         out: "sql/generated"
         options:
-          package: "mypackage"
+          package: "."
           emit_sync_querier: true
           emit_async_querier: false
           # outros opcionais se quiser, como limite de parâmetros etc
