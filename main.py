@@ -1,7 +1,18 @@
-from flask import Flask, jsonify, request
+from src.api import Server
+import os
+import dotenv
 
-app = Flask(__name__)
+def main():
+    dotenv.load_dotenv()
+
+    host = 'localhost'
+    port = int(os.getenv('BACKEND_PORT', 5000))
+
+    server = Server(
+        host=host,
+        port=port
+    )
+    server.run()
 
 if __name__ == '__main__':
-    # Listen on all interfaces so Docker port mapping works
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    main()

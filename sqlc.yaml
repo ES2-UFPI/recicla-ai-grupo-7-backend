@@ -6,11 +6,11 @@ plugins:
       sha256: "aca83e1f59f8ffdc604774c2f6f9eb321a2b23e07dc83fc12289d25305fa065b"
 sql:
   - schema: "sql/schema.sql"
-    queries: "sql/queries.sql"
+    queries: "sql/"
     engine: "postgresql"
     codegen:
       - plugin: "py"
-        out: "sql/generated"
+        out: "src/database"
         options:
           package: "."
           emit_sync_querier: true
