@@ -1,1 +1,1 @@
-from .dbg import logOk, logInfo, logError, logWarn
+from .dbg import log_ok, log_info, log_error, log_warn

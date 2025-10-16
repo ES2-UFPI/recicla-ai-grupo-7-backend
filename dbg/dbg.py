@@ -8,11 +8,11 @@
 
     o nome SYSTEM é uma global que pode ser facilmente mudada
 
-    def logInfo(*args):
+    def log_info(*args):
         [...]
-    def logError(*args):
+    def log_error(*args):
         [...]
-    def logWarn(*args):
+    def log_warn(*args):
         [...]
 """
 
@@ -66,14 +66,14 @@ def _warnTag() -> str:
         return f"{Fore.YELLOW}[WARN]{Style.RESET_ALL}"
     return "[WARN]"
 
-def logOk(*args):
+def log_ok(*args):
     print(_systemNameTag(), _okTag(), *args)
 
-def logInfo(*args):
+def log_info(*args):
     print(_systemNameTag(), _infoTag(), *args)
 
-def logError(*args):
+def log_error(*args):
     print(_systemNameTag(), _errorTag(), *args)
 
-def logWarn(*args):
+def log_warn(*args):
     print(_systemNameTag(), _warnTag(), *args)

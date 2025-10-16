@@ -1,3 +1,10 @@
+CREATE TABLE IF NOT EXISTS residue (
+    id SERIAL PRIMARY KEY,
+    type SMALLINT NOT NULL, -- 0: PAPER, 1: PLASTIC, 2: GLASS, 3: METAL
+    kg DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -93,6 +100,3 @@ CREATE TABLE reviews (
     comment TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
-
-
-
