@@ -1,2 +1,0 @@
-from .residue_type_enum import ResidueTypeEnum
-from .get_exception_trace import get_exception_trace

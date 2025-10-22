@@ -1,19 +1,45 @@
-from src.api import Server
+
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from src.database.connection import create_database
-import os
-import dotenv
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from src.schemas import return_schema
+from src.routes import auth_router, residue_router
 
-def main():
-    dotenv.load_dotenv()
+app = FastAPI()
+create_database()
 
-    # Cria as tabelas no banco de dados (se não existirem)
-    create_database()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    host = os.getenv('HOST', '0.0.0.0')
-    port = int(os.getenv('BACKEND_PORT', 5000))
+#routers
+app.include_router(auth_router.router)
+app.include_router(residue_router.router)
 
-    Server.init(host, port)
-    Server.run()
 
-if __name__ == '__main__':
-    main()
+#handlers
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    error_messages = [f"{error['loc'][1]}: {error['msg']}" for error in exc.errors()]
+
+    response = return_schema.ReturnError(errors=error_messages)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=dict(response)
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+
+    error_messages = [exc.detail] if isinstance(exc.detail, str) else exc.detail
+
+    response = return_schema.ReturnError(errors=error_messages)
+
+    return JSONResponse(status_code=exc.status_code, content=dict(response))
+

@@ -6,20 +6,25 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
+import uuid
 
 Base = declarative_base()
+
+
+def generate_uuid():
+    return str(uuid.uuid4())
 
 
 class User(Base):
     __tablename__ = 'users'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(100), nullable=False)
     email = Column(String(150), unique=True, nullable=False)
-    password_hash = Column(Text, nullable=False)
-    phone = Column(String(20))
+    password = Column(Text, nullable=False)
     role = Column(String(20), nullable=False)
     is_active = Column(Boolean, default=True)
+    refresh_token = Column(String(256), nullable=True)  # Armazena hash do refresh token
     created_at = Column(TIMESTAMP, server_default=func.now())
     
     __table_args__ = (
@@ -27,7 +32,6 @@ class User(Base):
     )
     
     # Relacionamentos
-    auth_tokens = relationship('AuthToken', back_populates='user', cascade='all, delete-orphan')
     addresses = relationship('Address', back_populates='user', cascade='all, delete-orphan')
     pickup_requests = relationship('PickupRequest', foreign_keys='PickupRequest.producer_id', back_populates='producer')
     collections_as_collector = relationship('Collection', foreign_keys='Collection.collector_id', back_populates='collector')
@@ -37,26 +41,11 @@ class User(Base):
     reviews_given = relationship('Review', foreign_keys='Review.reviewer_id', back_populates='reviewer')
     reviews_received = relationship('Review', foreign_keys='Review.reviewed_user_id', back_populates='reviewed_user')
 
-
-class AuthToken(Base):
-    __tablename__ = 'auth_tokens'
-    
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
-    token_hash = Column(Text, nullable=False)
-    expires_at = Column(TIMESTAMP, nullable=False)
-    revoked = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    
-    # Relacionamentos
-    user = relationship('User', back_populates='auth_tokens')
-
-
 class Address(Base):
     __tablename__ = 'addresses'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'))
     street = Column(String(150))
     number = Column(String(20))
     city = Column(String(100))
@@ -73,7 +62,7 @@ class Address(Base):
 class RecyclableMaterial(Base):
     __tablename__ = 'recyclable_materials'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     type = Column(String(50), nullable=False)
     description = Column(Text)
     
@@ -84,9 +73,9 @@ class RecyclableMaterial(Base):
 class PickupRequest(Base):
     __tablename__ = 'pickup_requests'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    producer_id = Column(Integer, ForeignKey('users.id'))
-    address_id = Column(Integer, ForeignKey('addresses.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    producer_id = Column(String(36), ForeignKey('users.id'))
+    address_id = Column(String(36), ForeignKey('addresses.id'))
     scheduled_time = Column(TIMESTAMP)
     status = Column(String(20))
     created_at = Column(TIMESTAMP, server_default=func.now())
@@ -105,9 +94,9 @@ class PickupRequest(Base):
 class PickupRequestItem(Base):
     __tablename__ = 'pickup_request_items'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    request_id = Column(Integer, ForeignKey('pickup_requests.id', ondelete='CASCADE'))
-    material_id = Column(Integer, ForeignKey('recyclable_materials.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    request_id = Column(String(36), ForeignKey('pickup_requests.id', ondelete='CASCADE'))
+    material_id = Column(String(36), ForeignKey('recyclable_materials.id'))
     weight_kg = Column(DECIMAL(10, 2), default=0)
     quantity = Column(Integer, default=1)
     
@@ -119,12 +108,12 @@ class PickupRequestItem(Base):
 class Collection(Base):
     __tablename__ = 'collections'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    request_id = Column(Integer, ForeignKey('pickup_requests.id'))
-    collector_id = Column(Integer, ForeignKey('users.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    request_id = Column(String(36), ForeignKey('pickup_requests.id'))
+    collector_id = Column(String(36), ForeignKey('users.id'))
     collected_at = Column(TIMESTAMP)
     delivered_at = Column(TIMESTAMP)
-    destination_cooperative_id = Column(Integer, ForeignKey('users.id'))
+    destination_cooperative_id = Column(String(36), ForeignKey('users.id'))
     
     # Relacionamentos
     request = relationship('PickupRequest', back_populates='collections')
@@ -136,9 +125,9 @@ class Collection(Base):
 class Reward(Base):
     __tablename__ = 'rewards'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    collection_id = Column(Integer, ForeignKey('collections.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey('users.id'))
+    collection_id = Column(String(36), ForeignKey('collections.id'))
     amount = Column(DECIMAL(10, 2), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     
@@ -150,8 +139,8 @@ class Reward(Base):
 class Wallet(Base):
     __tablename__ = 'wallet'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey('users.id'))
     balance = Column(DECIMAL(10, 2), default=0)
     
     # Relacionamentos
@@ -162,8 +151,8 @@ class Wallet(Base):
 class WalletTransaction(Base):
     __tablename__ = 'wallet_transactions'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    wallet_id = Column(Integer, ForeignKey('wallet.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    wallet_id = Column(String(36), ForeignKey('wallet.id'))
     amount = Column(DECIMAL(10, 2))
     type = Column(String(20))
     description = Column(Text)
@@ -180,9 +169,9 @@ class WalletTransaction(Base):
 class Review(Base):
     __tablename__ = 'reviews'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    reviewer_id = Column(Integer, ForeignKey('users.id'))
-    reviewed_user_id = Column(Integer, ForeignKey('users.id'))
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    reviewer_id = Column(String(36), ForeignKey('users.id'))
+    reviewed_user_id = Column(String(36), ForeignKey('users.id'))
     rating = Column(Integer)
     comment = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())
