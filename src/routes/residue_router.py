@@ -39,7 +39,7 @@ async def register_material(
     try:
         residue = residue_repo.ResidueRepo(session).register_recyclable_material(material)
 
-        return return_schema.ReturnTrueData(data=residue_schema.RecyclableMaterialOut(**residue), message="Material registrado com sucesso.")
+        return return_schema.ReturnTrueData(data=residue_schema.RecyclableMaterialOut.model_validate(residue))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -72,9 +72,9 @@ async def list_materials(
     """
     try:
         materials = residue_repo.ResidueRepo(session).get_all_recyclable_materials()
-        materials_out = [residue_schema.RecyclableMaterialOut(**material) for material in materials]
+        materials_out = [residue_schema.RecyclableMaterialOut.model_validate(material) for material in materials]
 
-        return return_schema.ReturnTrueData(data=materials_out, message="Materiais listados com sucesso.")
+        return return_schema.ReturnTrueData(data=materials_out)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -109,7 +109,7 @@ async def register_pickup(
     """
     try:
         pick_up_query = residue_repo.ResidueRepo(session).create_pickup_request(pickup, current_user.id)
-        return return_schema.ReturnTrue(message="Coleta registrada com sucesso.")
+        return return_schema.ReturnTrue()
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -145,11 +145,13 @@ async def get_my_pickups(
         pickups_out = []
 
         for pickup in pickups:
-            pickup_items = residue_repo.ResidueRepo(session).get_pickup_request_items(pickup.id)
-            pickup_items_out = [residue_schema.RecyclableMaterialItem(**item) for item in pickup_items]
-            pickups_out.append(residue_schema.PickupRequestOut(**pickup, items=pickup_items_out))
+            pickup_items = residue_repo.ResidueRepo(session).get_pickup_request_items(str(pickup.id))
+            pickup_items_out = [residue_schema.RecyclableMaterialItem.model_validate(item) for item in pickup_items]
+            pickup_out = residue_schema.PickupRequestOut.model_validate(pickup)
+            pickup_out.items = pickup_items_out
+            pickups_out.append(pickup_out)
 
-        return return_schema.ReturnTrueData(data=pickups_out, message="Coletas listadas com sucesso.")
+        return return_schema.ReturnTrueData(data=pickups_out)
             
 
     except Exception as e:

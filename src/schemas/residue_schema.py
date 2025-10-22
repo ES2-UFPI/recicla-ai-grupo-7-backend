@@ -38,12 +38,6 @@ class PickupRequest(BaseModel):
         "from_attributes": True
     }
 
-
-    @field_validator('scheduled_time')
-    def validate_scheduled_time(cls, v):
-        if v < datetime.now():
-            raise ValueError("scheduled_time must be in the future")
-        return v
     
 class PickupRequestOut(BaseModel):
     id: str

@@ -38,6 +38,7 @@ class ResidueRepo:
                 status="PENDENTE"
             )
             self.db.add(db_pickup_request)
+            self.db.flush()  # To get the ID before committing
 
             pickup_id = db_pickup_request.id  
 
