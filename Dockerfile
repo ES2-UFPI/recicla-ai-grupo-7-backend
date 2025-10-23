@@ -11,7 +11,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # port
-EXPOSE 5000
+EXPOSE 8000
 
-# comando para rodar flask
-CMD ["python", "main.py"]
+# comando para rodar fastapi com uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

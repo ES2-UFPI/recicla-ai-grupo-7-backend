@@ -25,16 +25,8 @@ def create_database():
     print("✅ Database tables created!")
 
 
-@contextmanager
 def get_db():
-    """
-    Context manager para obter sessão do banco.
-    
-    Uso:
-        with get_db() as db:
-            users = db.query(User).all()
-            # db fecha automaticamente ao sair do bloco
-    """
+    """Gera uma sessão de banco de dados"""
     db = SessionLocal()
     try:
         yield db

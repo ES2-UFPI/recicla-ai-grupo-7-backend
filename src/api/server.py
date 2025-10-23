@@ -29,7 +29,7 @@ class Server:
 
     @staticmethod
     def run():
-        from src.routes.pic_requests_router import prq
+        from routes.residue_router import prq
         
         global _server
         if _server is None:
